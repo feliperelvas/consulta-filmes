@@ -2,6 +2,8 @@ import requests
 import os
 from dotenv import load_dotenv
 import streamlit as st
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -36,3 +38,59 @@ def retorna_opcoes_para_busca(titulo, max_results=5):
         })
 
     return filmes
+
+def preparar_reviews_para_ia(reviews, max_reviews=10, max_chars=600):
+    textos = []
+
+    for comentario in list(reviews.values())[:max_reviews]:
+        texto = comentario.get("mensagem", "")
+        texto = texto[:max_chars]
+        textos.append(texto)
+
+    return textos
+
+def formatar_comentarios(lista_textos):
+    resultado = []
+
+    for i, texto in enumerate(lista_textos, start=1):
+        resultado.append(
+            f"<comentario{i:02d}> {texto} </comentario{i:02d}>"
+        )
+
+    return "\n".join(resultado)
+
+def gerar_resumo_ia(reviews):
+    api_key = st.session_state.get("api_key")
+    if not api_key:
+        return "API key não informada."
+    
+    client = genai.Client()
+
+    prompt_sistema = """
+    Você é um crítico de cinema profissional.
+
+    Com base nos comentários de usuários abaixo, gere um resumo crítico do filme contendo:
+
+    1. Avaliação geral do público
+    2. Principais pontos positivos
+    3. Principais pontos negativos
+    4. Tom geral (ex: empolgante, morno, decepcionante)
+    5. Um parágrafo final resumindo a experiência
+
+    Seja imparcial, claro e conciso.
+    Não cite comentários individuais.
+    Escreva em português.
+    """
+
+    lista_reviews = preparar_reviews_para_ia(reviews=reviews)
+
+    prompt_comentarios = formatar_comentarios(lista_textos=lista_reviews)
+
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        config=types.GenerateContentConfig(
+            system_instruction=prompt_sistema),
+        contents=prompt_comentarios
+    )
+
+    return response.text

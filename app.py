@@ -2,6 +2,21 @@ import streamlit as st
 from utils import retorna_opcoes_para_busca
 from imdb import IMDB
 
+with st.sidebar:
+    st.markdown("## 🔐 Configurações")
+    api_key = st.text_input(
+        "Informe sua API Key",
+        type="password",
+        help="Sua chave não será armazenada"
+    )
+
+if api_key:
+    st.session_state["api_key"] = api_key
+
+if "api_key" not in st.session_state:
+    st.info("Informe sua API key para ativar a análise por IA.")
+    st.stop()
+
 titulo = st.text_input("Digite o nome do filme")
 
 if titulo:
@@ -30,12 +45,14 @@ if titulo:
         sinopse = ClasseFilme.getSinopse()
         rating = ClasseFilme.getRating()
         reviews = ClasseFilme.getReviews()
+        generos = ClasseFilme.getGenero()
         
         st.markdown(f"""
         # 🎬 {filme_escolhido['titulo']} ({filme_escolhido['ano']})
 
         ⭐ **Rating IMDb:** {rating}  
-        🗳️ **Número de votos:** {votos}
+        🗳️ **Número de votos:** {votos}  
+        🎞️ **Gêneros:** {", ".join([genero.get("name") for genero in generos])}
 
         ---
 

@@ -73,6 +73,10 @@ class IMDB:
     def getnumeroVotos(self) -> float:
         self.__fetch_data()
         return self.__data.get("rating", {}).get("voteCount")
+    
+    def getGenero(self) -> list:
+        self.__fetch_data()
+        return self.__data.get("interests")
 
 
 if __name__ == "__main__":
