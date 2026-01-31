@@ -39,7 +39,7 @@ def retorna_opcoes_para_busca(titulo, max_results=5):
 
     return filmes
 
-def preparar_reviews_para_ia(reviews, max_reviews=10, max_chars=600):
+def preparar_reviews_para_ia(reviews, max_reviews=5, max_chars=600):
     textos = []
 
     for comentario in list(reviews.values())[:max_reviews]:
@@ -80,6 +80,7 @@ def gerar_resumo_ia(reviews):
     Seja imparcial, claro e conciso.
     Não cite comentários individuais.
     Escreva em português.
+    Lembre-se sempre de pontuar e pular linhas para deixar bem indicado seus comentários do título do parágrafo.
     """
 
     lista_reviews = preparar_reviews_para_ia(reviews=reviews)

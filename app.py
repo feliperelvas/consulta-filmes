@@ -1,21 +1,17 @@
 import streamlit as st
-from utils import retorna_opcoes_para_busca
+from utils import retorna_opcoes_para_busca, gerar_resumo_ia
 from imdb import IMDB
 
 with st.sidebar:
     st.markdown("## 🔐 Configurações")
     api_key = st.text_input(
-        "Informe sua API Key",
+        "Informe sua API Key do Gemini",
         type="password",
         help="Sua chave não será armazenada"
     )
 
 if api_key:
     st.session_state["api_key"] = api_key
-
-if "api_key" not in st.session_state:
-    st.info("Informe sua API key para ativar a análise por IA.")
-    st.stop()
 
 titulo = st.text_input("Digite o nome do filme")
 
@@ -33,9 +29,6 @@ if titulo:
         escolha = st.selectbox("Escolha o filme correto:", labels)
 
         filme_escolhido = opcoes[labels.index(escolha)]
-
-        # st.success(f"Você escolheu: {filme_escolhido['titulo']}")
-        # st.write(f"IMDb ID: `{filme_escolhido['imdb_id']}`")
 
         ###
 
@@ -70,5 +63,35 @@ if titulo:
 
             with st.expander(f"📝 {idx:02d}. {titulo}"):
                 st.markdown(mensagem)
+            
+            if idx == 5: break
 
+        st.divider()
 
+        with st.container(border=True):
+            st.subheader("Análise por Inteligência Artificial")
+            st.caption(
+                "A IA analisa as avaliações do público e gera um resumo crítico "
+                "destacando padrões, pontos positivos e negativos."
+            )
+
+            # Espaço visual
+            st.write("")
+
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                gerar_analise = st.button(
+                    "Gerar análise",
+                    use_container_width=True,
+                    disabled=not st.session_state.get("api_key"),
+                    help="Informe sua API Key na barra lateral para ativar esta funcionalidade."
+                    if not st.session_state.get("api_key")
+                    else "Clique para gerar a análise com IA"
+                )
+
+        if gerar_analise:
+            with st.spinner("Analisando avaliações com IA..."):
+                resumo = gerar_resumo_ia(reviews)
+
+            with st.container(border=True):
+                st.markdown(resumo)
