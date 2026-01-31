@@ -125,4 +125,8 @@ def traduzir_reviews(reviews):
 
 @st.cache_data(show_spinner="Gerando análise com IA...")
 def gerar_analise_cacheada(imdb_id, reviews):
+    """
+    Gera e cacheia a análise da IA.
+    O imdb_id garante que o cache seja específico para cada filme.
+    """
     return gerar_resumo_ia(reviews)

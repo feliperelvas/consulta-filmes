@@ -1,17 +1,8 @@
 import streamlit as st
 from utils import retorna_opcoes_para_busca, traduz_para_portugues, carregar_dados_filme, traduzir_reviews, gerar_analise_cacheada
-from imdb import IMDB
+from components.sidebar import render_sidebar
 
-with st.sidebar:
-    st.markdown("## 🔐 Configurações")
-    api_key = st.text_input(
-        "Informe sua API Key do Gemini",
-        type="password",
-        help="Sua chave não será armazenada"
-    )
-
-if api_key:
-    st.session_state["api_key"] = api_key
+render_sidebar()
 
 titulo = st.text_input("Digite o nome do filme")
 
