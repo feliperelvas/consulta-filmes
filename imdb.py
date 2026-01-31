@@ -50,7 +50,7 @@ class IMDB:
 
             resultado[f"comentario_{idx:02d}"] = {
                 "titulo": titulo,
-                "mensagem": mensagem
+                "mensagem": mensagem[:5000] # limitando o tamanho das mensagens para não ter problemas futuros com modelos e traduções
             }
         return resultado
 

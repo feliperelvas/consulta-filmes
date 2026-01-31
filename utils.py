@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import streamlit as st
 from google import genai
 from google.genai import types
+from deep_translator import GoogleTranslator
+from imdb import IMDB
 
 load_dotenv()
 
@@ -95,3 +97,32 @@ def gerar_resumo_ia(reviews):
     )
 
     return response.text
+
+def traduz_para_portugues(texto):
+    return GoogleTranslator(source='auto', target='portuguese').translate(texto)
+
+@st.cache_data(show_spinner="Buscando informações do filme...")
+def carregar_dados_filme(imdb_id):
+    filme = IMDB(title=imdb_id)
+
+    return {
+        "votos": filme.getnumeroVotos(),
+        "sinopse": filme.getSinopse(),
+        "rating": filme.getRating(),
+        "reviews": filme.getReviews(),
+        "generos": filme.getGenero(),
+    }
+
+@st.cache_data(show_spinner="Traduzindo comentários...")
+def traduzir_reviews(reviews):
+    return {
+        k: {
+            "titulo": traduz_para_portugues(v.get("titulo", "Sem título")),
+            "mensagem": traduz_para_portugues(v.get("mensagem", ""))
+        }
+        for k, v in list(reviews.items())[:5]
+    }
+
+@st.cache_data(show_spinner="Gerando análise com IA...")
+def gerar_analise_cacheada(imdb_id, reviews):
+    return gerar_resumo_ia(reviews)
