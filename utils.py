@@ -68,7 +68,7 @@ def gerar_resumo_ia(reviews):
     if not api_key:
         return "API key não informada."
     
-    client = genai.Client()
+    client = genai.Client(api_key=api_key)
 
     prompt_sistema = """
     Você é um crítico de cinema profissional.
@@ -171,7 +171,7 @@ def gerar_recomendacao_final(resumos_filmes):
     if not api_key:
         return "API key não informada."
 
-    client = genai.Client()
+    client = genai.Client(api_key=api_key)
 
     blocos = []
 
