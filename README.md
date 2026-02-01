@@ -7,6 +7,8 @@ Este projeto é uma aplicação interativa desenvolvida em **Streamlit** que com
 - Ver filmes em cartaz em um cinema específico no dia atual
 - Receber uma **recomendação inteligente** sobre qual filme assistir hoje
 
+**Link para o projeto**: https://consulta-filmes.streamlit.app/
+
 ---
 
 ## 🚀 Funcionalidades
