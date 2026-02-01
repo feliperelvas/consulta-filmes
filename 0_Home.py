@@ -14,7 +14,7 @@ st.markdown("""
 Use o menu à esquerda para navegar:
 
 - **Busca por filme** → informações detalhadas + análise por IA  
-- **Cinema do dia** → o que assistir hoje (em breve)
+- **Recomenda filme do dia** → o que assistir hoje no seu cinema de preferência
 
 👈 Selecione uma página no menu lateral.
 """)

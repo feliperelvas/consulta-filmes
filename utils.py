@@ -6,6 +6,8 @@ from google import genai
 from google.genai import types
 from deep_translator import GoogleTranslator
 from imdb import IMDB
+import unicodedata
+import re
 
 load_dotenv()
 
@@ -130,3 +132,96 @@ def gerar_analise_cacheada(imdb_id, reviews):
     O imdb_id garante que o cache seja específico para cada filme.
     """
     return gerar_resumo_ia(reviews)
+
+def gerar_resumo_filme_em_cartaz(filme_cinema):
+    """
+    filme_cinema:
+    {
+        "nome": str,
+        "duracao_min": int,
+        "sessoes": [...]
+    }
+    """
+
+    # 1️⃣ TMDB
+    opcoes = retorna_opcoes_para_busca(normalizar_titulo(filme_cinema["nome"]))
+    if not opcoes:
+        return None
+
+    imdb_id = opcoes[0]["imdb_id"]
+    if not imdb_id:
+        return None
+
+    # 2️⃣ IMDb
+    dados = carregar_dados_filme(imdb_id)
+    reviews = dados["reviews"]
+
+    # 3️⃣ IA (já cacheada)
+    resumo = gerar_analise_cacheada(imdb_id, reviews)
+
+    return {
+        "titulo": filme_cinema["nome"],
+        "duracao_min": filme_cinema["duracao_min"],
+        "horarios": [s["horario"] for s in filme_cinema["sessoes"]],
+        "resumo": resumo
+    }
+
+def gerar_recomendacao_final(resumos_filmes):
+    api_key = st.session_state.get("api_key")
+    if not api_key:
+        return "API key não informada."
+
+    client = genai.Client()
+
+    blocos = []
+
+    for idx, filme in enumerate(resumos_filmes, start=1):
+        blocos.append(f"""
+        Filme {idx}: {filme['titulo']}
+        Duração: {filme['duracao_min']} minutos
+        Horários: {', '.join(filme['horarios'])}
+
+        Resumo do público:
+        {filme['resumo']}
+        """)
+
+    prompt = f"""
+    Você é um crítico de cinema experiente.
+
+    Com base nos resumos abaixo dos filmes que estão em cartaz HOJE,
+    decida qual é o melhor filme para assistir neste momento.
+
+    Considere:
+    - Qualidade percebida pelo público
+    - Experiência cinematográfica
+    - Duração (filmes muito longos podem cansar)
+    - Apelo geral
+
+    Responda no formato:
+
+    🎯 Filme recomendado: **nome do filme**
+
+    📝 Justificativa:
+    (parágrafo claro e direto)
+
+    🎬 Outras boas opções:
+    - Filme X: para quem gosta de...
+    - Filme Y: alternativa mais leve...
+
+    Filmes em cartaz:
+    {chr(10).join(blocos)}
+    """
+
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=prompt
+    )
+
+    return response.text
+
+def normalizar_titulo(titulo):
+    titulo = titulo.lower()
+    titulo = unicodedata.normalize("NFKD", titulo)
+    titulo = titulo.encode("ascii", "ignore").decode("ascii")
+    titulo = re.sub(r"[^a-z0-9\s]", "", titulo)
+    return titulo.strip()

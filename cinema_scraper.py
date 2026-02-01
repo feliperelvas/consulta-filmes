@@ -16,10 +16,11 @@ class CinemaScraper:
 
     def fetch_html(self):
         r = requests.get(self.__cinema_url, headers=self.__headers)
+        r.encoding = "utf-8"
         r.raise_for_status()
         return r.text
 
-    def getFilmesCinesystemIlha(self):
+    def getFilmesCinesystemIlha(self) -> list:
         html = self.fetch_html()
         soup = BeautifulSoup(html, "html.parser")
 
