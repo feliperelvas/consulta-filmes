@@ -100,8 +100,19 @@ def gerar_resumo_ia(reviews):
 
     return response.text
 
-def traduz_para_portugues(texto):
-    return GoogleTranslator(source='auto', target='portuguese').translate(texto)
+def traduz_para_portugues(texto, max_chars=4000):
+    if not texto:
+        return ""
+
+    texto = texto.strip()
+
+    if len(texto) > max_chars:
+        texto = texto[:max_chars]
+
+    try:
+        return GoogleTranslator(source="auto",target="portuguese").translate(texto)
+    except Exception:
+        return texto  # fallback: retorna texto original
 
 @st.cache_data(show_spinner="Buscando informações do filme...")
 def carregar_dados_filme(imdb_id):
