@@ -1,5 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
+import os
+from dotenv import load_dotenv
+
+_ = load_dotenv()
+
+TMDB_KEY = os.getenv("TMDB_TOKEN")
 
 class IMDB:
     def __init__(self, title):
@@ -16,7 +22,7 @@ class IMDB:
             response.raise_for_status()
             self.__data = response.json()
 
-    def getReviews(self) -> dict:
+    def getReviews_imdb(self) -> dict:
         url_base = f'https://www.imdb.com/pt/title/{self.__title}/reviews/?spoilers=EXCLUDE&sort=review_volume%2Cdesc'
         resposta = requests.get(url_base, headers=self.__headers)
         soup = BeautifulSoup(resposta.text, "html.parser")
@@ -52,6 +58,55 @@ class IMDB:
                 "titulo": titulo,
                 "mensagem": mensagem[:5000] # limitando o tamanho das mensagens para não ter problemas futuros com modelos e traduções
             }
+        return resultado
+    
+    def getReviews(self) -> dict:
+        resultado = {}
+
+        # 🔹 1. Converter IMDb → TMDb
+        url_find = f"https://api.themoviedb.org/3/find/{self.__title}"
+        params = {
+            "api_key": TMDB_KEY,
+            "external_source": "imdb_id"
+        }
+
+        res_find = requests.get(url_find, params=params)
+
+        if res_find.status_code != 200:
+            print("Erro ao converter IMDb → TMDb")
+            return {}
+
+        data_find = res_find.json()
+
+        if not data_find.get("movie_results"):
+            print("Filme não encontrado no TMDb")
+            return {}
+
+        tmdb_id = data_find["movie_results"][0]["id"]
+
+        # 🔹 2. Buscar reviews
+        url_reviews = f"https://api.themoviedb.org/3/movie/{tmdb_id}/reviews"
+        res_reviews = requests.get(url_reviews, params={"api_key": TMDB_KEY})
+
+        if res_reviews.status_code != 200:
+            print("Erro ao buscar reviews")
+            return {}
+
+        reviews = res_reviews.json().get("results", [])
+
+        # 🔹 3. Processar resultado (igual seu padrão)
+        for idx, review in enumerate(reviews[:10], start=1):
+
+            content = review.get("content", "").strip()
+
+            titulo = content.split("\n")[0][:120] if content else None
+            mensagem = content[:5000] if content else None
+
+            resultado[f"comentario_{idx:02d}"] = {
+                "titulo": titulo,
+                "mensagem": mensagem
+            }
+
         return resultado
 
     def getRating(self) -> float:
